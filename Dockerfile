@@ -2,7 +2,7 @@ FROM python:3.10-alpine3.17
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-RUN apk add --no-cache py3-pip
+# RUN apk add --no-cache py3-pip
 
 # RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
 
@@ -12,9 +12,9 @@ COPY requirements.txt /app/requirements.txt
 
 WORKDIR /app
 
-RUN pip3 install --upgrade pip
+RUN pip install --upgrade pip
 
-RUN pip3 install -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY . /app
 
