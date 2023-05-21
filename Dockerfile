@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-# RUN apt update
+RUN apt update --allow-unauthenticated
 
 # RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
 
