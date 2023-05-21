@@ -1,4 +1,4 @@
-FROM python:3.10-alpine3.17
+FROM alpine:3.17
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
