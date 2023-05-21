@@ -2,9 +2,11 @@ FROM ubuntu:22.04
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-RUN apt update
+# RUN apt update
 
 # RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
+
+RUN apt install -y python3-pip
 
 COPY requirements.txt /app/requirements.txt
 
