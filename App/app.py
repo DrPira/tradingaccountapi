@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask import g
@@ -12,6 +12,7 @@ app.config['JWT_SECRET_KEY'] = os.environ['JWTSecret']
 jwt = JWTManager(app)
 
 api = Api(app)
+
 
 @app.before_request
 def beforereq():

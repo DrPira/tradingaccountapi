@@ -2,19 +2,11 @@ FROM alpine:3.12
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-# RUN apk add --no-cache py3-pip
-
-# RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
-
-# RUN apt install -y python3-pip
-
 RUN apk add --no-cache python3 py3-pip
 
 COPY requirements.txt /app/requirements.txt
 
 WORKDIR /app
-
-# RUN pip install --upgrade pip
 
 RUN pip install -r requirements.txt
 
