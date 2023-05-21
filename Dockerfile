@@ -1,12 +1,12 @@
-FROM ubuntu:22.04
+FROM python:3.10-alpine3.17
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-RUN apt update --allow-unauthenticated
+RUN apk add --no-cache py3-pip
 
 # RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
 
-RUN apt install -y python3-pip
+# RUN apt install -y python3-pip
 
 COPY requirements.txt /app/requirements.txt
 
