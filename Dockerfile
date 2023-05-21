@@ -7,7 +7,8 @@ MAINTAINER Erik Pira "erik.pira@gmail.com"
 # RUN apt install -y libblas-dev liblapack-dev gfortran python3-pip
 
 # RUN apt install -y python3-pip
-RUN python3 -m pip install --no-cache-dir --upgrade pip
+
+RUN apk add --no-cache python3 py3-pip
 
 COPY requirements.txt /app/requirements.txt
 
