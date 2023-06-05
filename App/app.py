@@ -10,6 +10,7 @@ from time import time
 from resources.login import UserLogin
 from resources.accounts import Accounts
 from resources.strategies import Strategies
+from resources.accountvalues import AccountValues
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = os.environ['JWTSecret']
@@ -20,6 +21,7 @@ api = Api(app)
 api.add_resource(UserLogin, '/login')
 api.add_resource(Accounts, '/accounts')
 api.add_resource(Strategies, '/strategies')
+api.add_resource(AccountValues, '/accountvalues')
 
 
 @app.before_request

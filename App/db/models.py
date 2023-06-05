@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, Float, Date, DateTime, Text
+from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, Float, Date, DateTime, Text, BigInteger
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import date, datetime
 from passlib.hash import pbkdf2_sha256 as sha256
 
@@ -116,6 +116,7 @@ class Account(Base):
     accountid = Column(Text, nullable=False)
     name = Column(Text)
     currency = Column(String(3))
+    timezone = Column(String(100))
     executingstrategy = Column(Integer, ForeignKey("strategies.id"))
     isactive = Column(Boolean, default=True)
     lasttradeupdate = Column(DateTime)
@@ -157,26 +158,26 @@ class AccountValue(Base):
     executedstrategyid = Column(Integer, ForeignKey("strategies.id"), index=True)
 
     @staticmethod
-    def getdbobjvalueforidanddate(session: Session, valuedate: date, accountid: str) -> 'AccountValue':
+    def getdbobjvalueforidanddate(session: Session, valuedate: date, accountdbid: int) -> 'AccountValue':
         existing = session.query(AccountValue). \
             filter(AccountValue.valuedate == valuedate). \
-            filter(AccountValue.accountid == accountid).first()
+            filter(AccountValue.accountdbid == accountdbid).first()
         if existing is None:
             existing = AccountValue(valuedate=valuedate)
             existing.valuedate = valuedate
-            existing.accountid = accountid
+            existing.accountdbid = accountdbid
             session.add(existing)
         return existing
 
     @staticmethod
     def getaccountvalueforperiod(session: Session,
-                                 accountid: str,
+                                 accountid: int,
                                  startdate: date,
                                  enddate: date) -> List['AccountValue']:
         return session.query(AccountValue).\
             filter(AccountValue.valuedate >= startdate).\
             filter(AccountValue.valuedate <= enddate).\
-            filter(AccountValue.accountid == accountid).all()
+            filter(AccountValue.accountdbid == accountid).all()
 
     @staticmethod
     def getaccountvaluesforstrategy(session: Session, strategyid: int) -> List['AccountValue']:
@@ -243,3 +244,73 @@ class Position(Base):
     def getdbpositionfordbid(session: Session, dbid: int) -> 'Position':
         return session.query(Position).filter(Position.id == dbid).first()
 
+
+class AccountTransaction(Base):
+    __tablename__ = "accounttransactions"
+
+    id = Column(Integer, primary_key=True)
+    accountdbid = Column(Integer, ForeignKey('accounts.id'))
+    brokertransactionid = Column(BigInteger)
+    transactiondatetime = Column(DateTime, nullable=False)
+    value = Column(Float, nullable=False)
+    investor = Column(Integer, ForeignKey('investors.id'))
+    sharestraded = Column(Float)
+    sharedtransaction = Column(Boolean, default=False)
+    internaltransaction = Column(Boolean, default=False)
+    includeinperformance = Column(Boolean, default=False)
+
+    @staticmethod
+    def puttransaction(session: Session,
+                       igtransactionid: int,
+                       transactiondate: date,
+                       value: float,
+                       accountid: str) -> 'AccountTransaction':
+        existing = session.query(AccountTransaction).\
+            filter(AccountTransaction.igtransactionid == igtransactionid).\
+            filter(AccountTransaction.accountid == accountid).first()
+        if existing is None:
+            existing = AccountTransaction(igtransactionid=igtransactionid,
+                                          transactiondate=transactiondate,
+                                          value=value,
+                                          accountid=accountid,
+                                          includeinperformance=True)
+            session.add(existing)
+        existing.value = value
+        existing.transactiondate = transactiondate
+
+        return existing
+
+    @staticmethod
+    def gettransactionsforperiod(session: Session,
+                                 startdate: date,
+                                 enddate: date,
+                                 accountids: Optional[List[int]]) -> List['AccountTransaction']:
+        if not accountids:
+            return session.query(AccountTransaction). \
+                filter(AccountTransaction.transactiondate >= startdate). \
+                filter(AccountTransaction.transactiondate <= enddate).all()
+        return session.query(AccountTransaction). \
+            filter(AccountTransaction.transactiondatetime >= startdate). \
+            filter(AccountTransaction.transactiondatetime <= enddate). \
+            filter(AccountTransaction.accountdbid.in_(accountids)).all()
+
+    @staticmethod
+    def gettransactionsbyinvestor(session: Session, investorid: int) -> List['AccountTransaction']:
+        return session.query(AccountTransaction).\
+            filter(AccountTransaction.investor == investorid).\
+            order_by(AccountTransaction.transactiondatetime.desc()).all()
+
+
+class Investor(Base):
+    __tablename__ = "investors"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200))
+    email = Column(String(200))
+    noofshares = Column(Float)
+    averageacquisitioncost = Column(Float)
+    netassetvalue = Column(Float)
+
+    @staticmethod
+    def getallinvestors(session: Session) -> List['Investor']:
+        return session.query(Investor).all()

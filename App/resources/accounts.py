@@ -1,7 +1,8 @@
 from flask_restful import Resource, reqparse
 from db.models import Account, Strategy, UserAccountLink, StrategyUserLink
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from resources.helpers import sessionhandler
+from resources.helpers import sessionhandler, useraccountrightsneeded
+from dateutil.tz import gettz
 
 
 class Accounts(Resource):
@@ -14,7 +15,8 @@ class Accounts(Resource):
 
     @jwt_required()
     @sessionhandler
-    def put(self, session):
+    @useraccountrightsneeded(editrights=True)
+    def put(self, session, account):
         parser = reqparse.RequestParser()
         parser.add_argument("accountid", required=True, type=int)
         parser.add_argument("executingstrategyid", required=False, type=int)
@@ -22,15 +24,6 @@ class Accounts(Resource):
         parser.add_argument("isactive", required=False)
 
         data = parser.parse_args()
-
-        accounts = Account.getaccountsbyuserid(session=session, userid=get_jwt_identity())
-        try:
-            account = next(x for x in accounts if x.id == int(data['accountid']))
-        except StopIteration:
-            return {"message": "Account not found"}, 404
-
-        if not Account.canusereditaccount(session=session, userid=get_jwt_identity(), accountid=account.id):
-            return {"message": "User cannot edit account"}, 401
 
         if not Strategy.canuserusestrategy(session=session,
                                            userid=get_jwt_identity(),
@@ -57,6 +50,7 @@ class Accounts(Resource):
         parser.add_argument("accountname", required=True)
         parser.add_argument("accountid", required=True)
         parser.add_argument("currency", required=True)
+        parser.add_argument("timezone", required=True)
         parser.add_argument("executingstrategyid", required=False)
 
         data = parser.parse_args()
@@ -65,6 +59,10 @@ class Accounts(Resource):
         newaccount.name = data['accountname']
         newaccount.accountid = data['accountid']
         newaccount.currency = data['currency']
+        try:
+            newaccount.timezone = gettz(data['timezone'])
+        except ValueError:
+            return {"message": "Invalid timezone"}, 400
         newaccount.executingstrategy = data['executingstrategyid']
         newaccount.isactive = True
 
@@ -92,6 +90,7 @@ class Accounts(Resource):
             "accountname": account.name,
             "accountid": account.accountid,
             "currency": account.currency,
+            "timezone": account.timezone,
             "executingstrategyid": account.executingstrategy,
             "executingstrategyname": strategy.name if strategy else None,
             "isactive": account.isactive

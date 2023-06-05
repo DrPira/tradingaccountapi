@@ -13,7 +13,6 @@ class Strategies(Resource):
 
         return [self._returndictforstrategy(x) for x in strategies]
 
-
     @jwt_required()
     @sessionhandler
     def put(self, session):
