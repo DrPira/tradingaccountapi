@@ -244,6 +244,22 @@ class Position(Base):
     def getdbpositionfordbid(session: Session, dbid: int) -> 'Position':
         return session.query(Position).filter(Position.id == dbid).first()
 
+    @staticmethod
+    def getopenpositionsforaccount(session: Session, accountid: int) -> List['Position']:
+        return session.query(Position).\
+            filter(Position.accountid == accountid).\
+            filter(Position.status == "OPEN").all()
+
+    @staticmethod
+    def getallpositionsforaccount(session: Session, accountid: int) -> List['Position']:
+        return session.query(Position).filter(Position.accountid == accountid).all()
+
+    @staticmethod
+    def getpositionwithaccountandbrokerid(session: Session, accountid: int, brokerpositionid: str):
+        return session.query(Position).\
+            filter(Position.accountid == accountid).\
+            filter(Position.brokerpositionid == brokerpositionid).first()
+
 
 class AccountTransaction(Base):
     __tablename__ = "accounttransactions"
