@@ -2,7 +2,7 @@ FROM alpine:3.12
 
 MAINTAINER Erik Pira "erik.pira@gmail.com"
 
-RUN apk add --no-cache python3 py3-pip
+RUN apk add --no-cache python3 py3-pip python3-dev build-base
 
 COPY requirements.txt /app/requirements.txt
 
